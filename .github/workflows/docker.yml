@@ -1,0 +1,44 @@
+name: Docker validation
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      WEB_PASSWORD: ci-validation-only
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate Compose
+        run: docker compose config --quiet
+      - name: Build local project image
+        run: docker compose build
+      - name: Start app
+        run: docker compose up -d --no-build
+      - name: Check health and rule-only evaluation
+        shell: bash
+        run: |
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:8000/health; then break; fi
+            sleep 2
+          done
+          curl --fail --silent http://127.0.0.1:8000/health
+          curl --fail --silent http://127.0.0.1:8000/ > /tmp/radar-index.html
+          grep -q '<html' /tmp/radar-index.html
+          docker compose exec -T app python -m src.radar --input - --db /tmp/radar-smoke.sqlite3 < examples/items.jsonl > /tmp/radar-output.jsonl
+          python - <<'PY'
+          import json
+          rows = [json.loads(line) for line in open('/tmp/radar-output.jsonl', encoding='utf-8')]
+          assert len(rows) == 5
+          assert rows[0]['price_type'] == 'NEGOTIABLE_REAL_PRICE'
+          assert rows[1]['price_type'] == 'PLACEHOLDER_PRICE'
+          assert all(0 <= row['price_confidence'] <= 100 for row in rows)
+          print('Docker rule-only smoke passed for 5 items')
+          PY
+      - name: Show logs on failure
+        if: failure()
+        run: docker compose logs --no-color
+      - name: Stop app
+        if: always()
+        run: docker compose down

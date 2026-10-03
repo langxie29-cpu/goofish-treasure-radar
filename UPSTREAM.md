@@ -1,0 +1,1 @@
+Imported from Usagi-org/ai-goofish-monitor at f85d140b6b45029d9a0925feb96dad733b41396d (MIT, copyright 2025 dingyufei615). Original LICENSE preserved. Upstream reviewed on 2026-10-04 Asia/Shanghai. See docs/upstream-research.md for source review and synchronization instructions.

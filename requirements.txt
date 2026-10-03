@@ -1,18 +1,4 @@
-python-dotenv
-playwright
-requests
-openai
-fastapi
-uvicorn[standard]
-pydantic-settings
-jinja2
-aiofiles
-python-socks
-apscheduler
-httpx[socks]
-Pillow
-pyzbar
-qrcode
-pytest
-pytest-asyncio
-coverage
+-r requirements-runtime.txt
+pytest==9.1.1
+pytest-asyncio==1.4.0
+coverage==7.16.2

@@ -697,7 +697,7 @@ async def scrape_xianyu(task_config: dict, debug_limit: int = 0):
                     print("建议：")
                     print("1. 停止脚本一段时间再试。")
                     print(
-                        "2. (推荐) 在 .env 文件中设置 RUN_HEADLESS=false，以非无头模式运行，这有助于绕过检测。"
+                        "2. 停止采集；需要时在官方页面手动完成验证，确认后再恢复。"
                     )
                     print(f"任务 '{keyword}' 将在此处中止。")
                     print(
@@ -1058,7 +1058,8 @@ async def scrape_xianyu(task_config: dict, debug_limit: int = 0):
                                 item_data["浏览量"] = await safe_get(
                                     item_do, "browseCnt", default="-"
                                 )
-                                # ...[此处可添加更多从详情页解析出的商品信息]...
+                                # Radar needs the full description to detect hidden transaction prices.
+                                item_data["商品描述"] = str(item_do.get("desc") or item_do.get("description") or "")
 
                                 user_id = await safe_get(seller_do, "sellerId")
 

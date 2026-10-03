@@ -72,6 +72,23 @@ class ItemAnalysisDispatcher:
     async def _process_job(self, job: ItemAnalysisJob) -> None:
         record = copy.deepcopy(job.final_record)
         item_data = record.get("商品信息", {}) or {}
+        if os.getenv("RADAR_ENABLED", "false").lower() == "true":
+            from src.radar import EvaluationStore, Radar
+            radar = Radar(EvaluationStore(os.getenv("APP_DATABASE_FILE", "data/app.sqlite3")),
+                          interest_threshold=int(os.getenv("RADAR_INTEREST_THRESHOLD", "50")))
+            evaluation = await radar.evaluate(record)
+            record["radar_evaluation"] = evaluation.to_dict()
+            record["ai_analysis"] = {
+                "analysis_source": "radar",
+                "is_recommended": evaluation.worth_opening,
+                "reason": evaluation.evaluation_reason,
+                "keyword_hit_count": len(evaluation.interest_flags),
+            }
+            if await self._saver(record, job.keyword):
+                self.completed_count += 1
+            if not evaluation.duplicate:
+                await self._notify_if_recommended(item_data, record["ai_analysis"])
+            return
         record["卖家信息"] = await self._load_seller_info(job)
         record["ai_analysis"] = await self._build_analysis_result(job, record)
         if await self._saver(record, job.keyword):

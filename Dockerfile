@@ -46,7 +46,7 @@ COPY --from=frontend-builder /dist /app/dist
 
 COPY src /app/src
 COPY spider_v2.py /app/spider_v2.py
-COPY prompts /app/prompts
+RUN mkdir -p /app/prompts
 COPY static /app/static
 COPY config.json.example /app/config.json.example
 

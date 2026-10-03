@@ -3,7 +3,7 @@ import re
 import unicodedata
 from .schemas import DetectedModel
 
-CANDIDATE = re.compile(r'(?<![A-Za-z0-9])(?:[A-Za-z]{1,8}[- ]?)?\d{1,6}[A-Za-z]{0,5}(?:[- ][A-Za-z0-9]{1,8})?(?![A-Za-z0-9])')
+CANDIDATE = re.compile(r'(?<![A-Za-z0-9])[A-Za-z]{1,8}-?\d[A-Za-z0-9]*(?:-[A-Za-z0-9]+)*(?![A-Za-z0-9])')
 TECH = re.compile(r'^(?:\d+(?:V|HZ|MHZ|GHZ|KHZ|W|MAH|GB|TB|MM|CM)|\d+[X×]\d+|USB[- ]?\d+|HDMI[- ]?\d+|IP\d+)$', re.I)
 
 

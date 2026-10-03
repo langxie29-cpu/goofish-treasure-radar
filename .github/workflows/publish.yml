@@ -1,0 +1,27 @@
+name: Preserve MVP Git history
+on:
+  push:
+    branches: [main]
+    paths: [transfer/mvp.bundle]
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Import original commits without rewriting them
+        shell: bash
+        run: |
+          git bundle verify transfer/mvp.bundle
+          git fetch transfer/mvp.bundle refs/heads/work/treasure-radar-mvp:refs/heads/imported-mvp
+          test "$(git rev-parse imported-mvp)" = "6d70b41d6f89732a10fe46732490018a59ff266e"
+          test "$(git rev-list --count imported-mvp)" = "12"
+          cp .github/workflows/publish.yml /tmp/publish.yml
+          git switch imported-mvp
+          cp /tmp/publish.yml .github/workflows/publish.yml
+          git config user.name "Treasure Radar Publishing"
+          git config user.email "279250622+langxie29-cpu@users.noreply.github.com"
+          git add .github/workflows/publish.yml
+          git commit -m "chore: retain temporary publication workflow"
+          git push origin HEAD:refs/heads/publish-import

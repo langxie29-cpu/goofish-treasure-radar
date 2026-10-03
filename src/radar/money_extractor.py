@@ -8,7 +8,7 @@ BOUNDARY = r'(?<![A-Za-z0-9.\-])'
 PATTERN = re.compile(
     rf'{BOUNDARY}(?:'
     rf'[¥￥]\s*(?P<currency>{NUMBER})|'
-    rf'(?P<suffix>{NUMBER})\s*(?:元|块钱?|包邮|到手|出(?=售|掉|[，。！!、\s]|$))|'
+    rf'(?P<suffix>{NUMBER})\s*(?:元|块钱?|包邮|到手|定金|订金|尾款|出(?=售|掉|[，,。！!、\s]|$))|'
     rf'(?:最低|底价|到手|总价|售价|价格|定金|订金|尾款|整机价?|出)\s*[:：]?\s*(?P<prefix>{NUMBER})'
     rf')', re.I)
 TECH_SUFFIX = re.compile(r'\s*(?:[kmg]?hz|[kmg]?v|mah|[kmg]?w|gb|tb|mm|cm|年|月|寸|英寸|[x×*]\s*\d)', re.I)

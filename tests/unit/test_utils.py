@@ -51,4 +51,7 @@ def test_save_to_jsonl(tmp_path, monkeypatch):
             sort_order="asc",
         )
     )
-    assert records == [record]
+    assert len(records) == 1
+    assert {k: v for k, v in records[0].items() if not k.startswith('_')} == record
+    assert records[0]['_status'] == 'active'
+    assert records[0]['_effective_hidden'] is False

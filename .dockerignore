@@ -10,7 +10,6 @@ venv
 logs/
 jsonl/
 web-ui/node_modules
-web-ui/dist
 dist/
 .git
 .DS_Store
@@ -22,3 +21,13 @@ data/
 price_history/
 *.md
 !README.md
+
+state/
+xianyu_state.json
+.env.*
+!.env.example
+*storage_state*.json
+*cookies*.json
+*session*.json
+*.sqlite*
+*.db

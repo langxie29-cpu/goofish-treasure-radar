@@ -449,6 +449,9 @@ async def scrape_xianyu(task_config: dict, debug_limit: int = 0):
     """
     keyword = task_config["keyword"]
     max_pages = task_config.get("max_pages", 1)
+    radar_enabled = os.getenv("RADAR_ENABLED", "false").lower() == "true"
+    if radar_enabled:
+        max_pages = min(max_pages, 1)
     personal_only = task_config.get("personal_only", False)
     min_price = task_config.get("min_price")
     max_price = task_config.get("max_price")
@@ -492,6 +495,13 @@ async def scrape_xianyu(task_config: dict, debug_limit: int = 0):
         rotation_settings["account_enabled"] = True
     else:
         rotation_settings["account_enabled"] = False
+
+    if radar_enabled:
+        # Bind one existing login state; never switch accounts/proxies after a challenge.
+        if not forced_account and not os.path.exists(STATE_FILE) and account_items:
+            forced_account = sorted(account_items)[0]
+        rotation_settings.update(account_enabled=False, proxy_enabled=False,
+                                 account_retry_limit=1, proxy_retry_limit=1)
 
     account_pool = RotationPool(
         account_items, rotation_settings["account_blacklist_ttl"], "account"
@@ -550,15 +560,10 @@ async def scrape_xianyu(task_config: dict, debug_limit: int = 0):
             print(f"警告：读取登录状态文件失败，将直接按路径使用: {e}")
 
         async with async_playwright() as p:
-            # 反检测启动参数
-            launch_args = [
-                "--disable-blink-features=AutomationControlled",
-                "--disable-dev-shm-usage",
-                "--no-sandbox",
-                "--disable-setuid-sandbox",
-                "--disable-web-security",
-                "--disable-features=IsolateOrigins,site-per-process",
-            ]
+            # Ordinary Chromium; no webdriver masking or web-security overrides.
+            launch_args = ["--disable-dev-shm-usage"]
+            if RUNNING_IN_DOCKER:
+                launch_args.extend(["--no-sandbox", "--disable-setuid-sandbox"])
 
             launch_kwargs = {"headless": RUN_HEADLESS, "args": launch_args}
             if proxy_server:
@@ -608,29 +613,6 @@ async def scrape_xianyu(task_config: dict, debug_limit: int = 0):
             )
 
             # 增强反检测脚本（模拟真实移动设备）
-            await context.add_init_script("""
-                // 移除webdriver标识
-                Object.defineProperty(navigator, 'webdriver', {get: () => undefined});
-
-                // 模拟真实移动设备的navigator属性
-                Object.defineProperty(navigator, 'plugins', {get: () => [1, 2, 3, 4, 5]});
-                Object.defineProperty(navigator, 'languages', {get: () => ['zh-CN', 'zh', 'en-US', 'en']});
-
-                // 添加chrome对象
-                window.chrome = {runtime: {}, loadTimes: function() {}, csi: function() {}};
-
-                // 模拟触摸支持
-                Object.defineProperty(navigator, 'maxTouchPoints', {get: () => 5});
-
-                // 覆盖permissions查询（避免暴露自动化）
-                const originalQuery = window.navigator.permissions.query;
-                window.navigator.permissions.query = (parameters) => (
-                    parameters.name === 'notifications' ?
-                        Promise.resolve({state: Notification.permission}) :
-                        originalQuery(parameters)
-                );
-            """)
-
             page = await context.new_page()
 
             try:

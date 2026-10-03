@@ -6,7 +6,7 @@ from .schemas import Item, MoneyMention, PriceIntegrityResult, PriceType
 
 def analyze_price(item: Item, mentions: list[MoneyMention] | None = None) -> PriceIntegrityResult:
     mentions = extract_money(item.text) if mentions is None else mentions
-    text = item.text
+    text = re.sub(r'(?:无需|不用|不收|不需要|无)(?:定金|订金)', '', item.text)
     listed = item.listed_price
     flags = []
     sale = [m.amount for m in mentions if m.role in {'sale', 'minimum', 'total'}]

@@ -70,8 +70,6 @@ class EvaluationStore:
         with self.connection() as conn:
             inserted = conn.execute('INSERT OR IGNORE INTO radar_observations VALUES (?,?,?,?,?)',
                                     (result.item_id, result.input_hash, result.engine_version, result.evaluated_at, serialized)).rowcount
-            if not inserted:
-                return False
             columns = ','.join(keys + ['evaluation_json'])
             placeholders = ','.join('?' for _ in range(len(keys)+1))
             update = ','.join(f'{k}=excluded.{k}' for k in keys if k != 'item_id') + ',evaluation_json=excluded.evaluation_json'
@@ -81,4 +79,4 @@ class EvaluationStore:
                 for model in result.detected_models:
                     conn.execute('INSERT OR IGNORE INTO model_price_history VALUES (?,?,?,?,?,?)',
                                  (model.model, result.item_id, result.listed_price, None, result.evaluated_at, result.input_hash))
-        return True
+        return bool(inserted)

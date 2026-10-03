@@ -31,3 +31,8 @@ xianyu_state.json
 *session*.json
 *.sqlite*
 *.db
+
+# Required source data and license attribution
+!web-ui/src/data/
+!web-ui/src/data/**
+!UPSTREAM.md

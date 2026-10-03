@@ -92,21 +92,27 @@ class _FileLock:
         self._fh = fh
 
     def __enter__(self):
-        try:
+        if os.name == "nt":
+            import msvcrt
+            self._fh.seek(0, os.SEEK_END)
+            if self._fh.tell() == 0:
+                self._fh.write(b"\0")
+                self._fh.flush()
+            self._fh.seek(0)
+            msvcrt.locking(self._fh.fileno(), msvcrt.LK_LOCK, 1)
+        else:
             import fcntl
-
             fcntl.flock(self._fh.fileno(), fcntl.LOCK_EX)
-        except Exception:
-            pass
         return self
 
     def __exit__(self, exc_type, exc, tb):
-        try:
+        if os.name == "nt":
+            import msvcrt
+            self._fh.seek(0)
+            msvcrt.locking(self._fh.fileno(), msvcrt.LK_UNLCK, 1)
+        else:
             import fcntl
-
             fcntl.flock(self._fh.fileno(), fcntl.LOCK_UN)
-        except Exception:
-            pass
         return False
 
 
@@ -188,7 +194,8 @@ class FailureGuard:
 
     def _update_task(self, task_key: str, updater) -> dict:
         _ensure_parent_dir(self.path)
-        with open(self.path, "a+", encoding="utf-8") as fh:
+        # Lock a stable sidecar: Windows cannot replace an open destination file.
+        with open(self.path + ".lock", "a+b") as fh:
             with _FileLock(fh):
                 fh.seek(0)
                 data = self._load()

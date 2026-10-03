@@ -8,9 +8,9 @@ Validation date: 2026-10-04 Asia/Shanghai. Local runtime: Linux / Python 3.12.14
 - CLI fixture import and backfill passed against a temporary SQLite database.
 - Python source compilation and Git whitespace check passed.
 - Pre-publication tracked-file scan: no common GitHub/OpenAI/private-key token patterns and no runtime Cookie/state/database/.env files (synthetic state.sample.json fixture contains only dummy data).
-- Docker build/run **not executed**: Docker is not installed in this execution environment. Dockerfile paths and Compose were reviewed; local backend, static output and module integration tested independently.
+- Local Docker is unavailable. Hosted `.github/workflows/docker.yml` validates Compose, builds the actual project image, starts the app, checks health/static UI, and evaluates five fixtures inside the container. Latest results are in the repository Actions tab.
 - Live Goofish crawl **not executed**: no user login state supplied. Upstream parser/dispatcher regression tests pass, but platform selectors and actual account access require a manual first run. Captchas and expired login must be handled on official pages.
-- GitHub CI / Windows execution **pending remote publication**. The workflow is committed; local success is not a claim of remote green CI.
+- Remote GitHub Actions executes both Ubuntu and Windows tests plus frontend builds. See the Actions tab for the latest commit's actual status; local success alone is not remote CI evidence.
 
 Known limits:
 
@@ -22,3 +22,11 @@ Known limits:
 6. Upstream Web API is suitable only for a trusted local environment; login UI alone does not enforce server-side authorization. Default Docker port is loopback-only. Use an authenticated reverse proxy including WebSocket before any remote exposure.
 7. Radar-specific ranking/filter controls are not implemented in the Vue frontend. Reasons appear via the existing result fields; complete structured data is available in SQLite and JSON.
 8. Scheduler rate is configurable; conservative examples and one-page cap are provided, but no global request-budget governor yet. Keep a small number of staggered tasks.
+
+## Publication fixes
+
+Original 12 commits were transferred as a verified Git bundle, preserving all original SHAs. Additional publication commits provide Docker CI and necessary clone/Windows fixes; the MVP was not reimplemented.
+
+Remote checks discovered a frontend region JSON omitted by the upstream broad `data/` ignore, stdout detachment breaking Windows pytest capture, replacement of an open state file on Windows, and a proxy test incorrectly assuming case-sensitive Windows environment variables. These were fixed without removing test coverage. Docker now uses the official default PyPI index and includes MIT LICENSE / upstream attribution.
+
+Upstream npm dependency audit reported 18 findings (1 low, 4 moderate, 13 high) during clean CI installation. Dependency remediation is a separate follow-up; the project remains intended for trusted local use rather than public deployment.

@@ -13,9 +13,10 @@ import requests
 
 # 设置标准输出编码为UTF-8，解决Windows控制台编码问题
 if sys.platform.startswith('win'):
-    import codecs
-    sys.stdout = codecs.getwriter('utf-8')(sys.stdout.detach())
-    sys.stderr = codecs.getwriter('utf-8')(sys.stderr.detach())
+    # Reconfigure streams in place; detaching breaks pytest capture and embedded callers.
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, 'reconfigure'):
+            stream.reconfigure(encoding='utf-8', errors='replace')
 
 from src.config import (
     AI_DEBUG_MODE,

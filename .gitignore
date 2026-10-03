@@ -14,7 +14,7 @@ config.json
 prompts/
 .serena/
 price_history/
-data/
+/data/
 
 # Radar runtime / credentials
 .env.*

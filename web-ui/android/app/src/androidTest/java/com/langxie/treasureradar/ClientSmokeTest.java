@@ -28,7 +28,9 @@ public class ClientSmokeTest {
             js(scenario,"var input=document.querySelector('#backend-url'); input.value='http://10.0.2.2:8765'; input.dispatchEvent(new Event('input',{bubbles:true})); document.querySelector('form').dispatchEvent(new Event('submit',{bubbles:true,cancelable:true})); true");
             waitFor(scenario,"document.body.innerText.includes('ONLINE') && location.hash.includes('/login')");
             // Existing authentication view is still used. Test server validates a synthetic password.
-            js(scenario,"var u=document.querySelector('#username'); u.value='test'; u.dispatchEvent(new Event('input',{bubbles:true})); var p=document.querySelector('#password'); p.value='test-only'; p.dispatchEvent(new Event('input',{bubbles:true})); document.querySelector('form').dispatchEvent(new Event('submit',{bubbles:true,cancelable:true})); true");
+            js(scenario,"var u=document.querySelector('#username'); u.value='test'; u.dispatchEvent(new Event('input',{bubbles:true})); var p=document.querySelector('#password'); p.value='test-only'; p.dispatchEvent(new Event('input',{bubbles:true})); true");
+            // useVModel propagates component values on the next Vue microtask.
+            js(scenario,"document.querySelector('form').dispatchEvent(new Event('submit',{bubbles:true,cancelable:true})); true");
             waitFor(scenario,"localStorage.getItem('auth_logged_in')==='true'");
             js(scenario,"location.hash='/candidates'; true");
             waitFor(scenario,"document.body.innerText.includes('LJ64HB34')");

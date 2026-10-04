@@ -1,6 +1,7 @@
 apply plugin: 'com.android.application'
 
 android {
+    buildFeatures { buildConfig true }
     namespace = "com.langxie.treasureradar"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {

@@ -129,3 +129,49 @@ CI 在 Ubuntu / Windows 上运行离线测试，在 Ubuntu 上构建前端。真
 尊重闲鱼服务条款，只用于个人商品发现和研究。不高频请求，不绕过验证码或平台安全机制，不实现验证码破解，不自动下单，不自动向卖家发送骚扰式消息。验证码或登录失效时停止，人工在官方页面处理。已移除上游 webdriver 隐藏和浏览器安全覆盖；Radar 模式不切换账号/代理重试挑战。
 
 `.env`、Cookie、Token、浏览器 state、SQLite 和运行结果不进入版本库。通知 URL 也可能含密钥，只在本机保存。服务首次启动不代表已开始监控，仍需你本人导入有效登录态并启用任务。
+
+
+## Android 自用 App（0.1.0-alpha）
+
+客户端名称 **Treasure Radar**，包名 `com.langxie.treasureradar`。使用 Capacitor 8 包装现有 Vue UI；Playwright、SQLite、爬虫和定时任务始终运行在 PC / NAS / server。
+
+### 安装 APK
+
+打开 [v0.1.0-alpha Release](https://github.com/langxie29-cpu/goofish-treasure-radar/releases/tag/v0.1.0-alpha)，下载 `treasure-radar-v0.1.0-alpha-debug.apk`。备用下载：GitHub Actions → Android APK → 成功的 run → `treasure-radar-debug.apk` artifact，解压 ZIP 后安装 APK。Release 附带 SHA256SUMS。
+
+在 Android 上点开 APK，按系统提示允许当前文件管理器/浏览器“安装未知应用”，完成安装；安装后可关闭此权限。这是个人 debug 版，最低 Android 7 / API 24；不是应用商店版本。不同 CI runner 自动生成的 debug 签名可能不同；出现签名不一致时需卸载旧版再安装，后端数据不会丢失，但手机端地址设置需重填。
+
+### 电脑 / NAS 后端
+
+1. 复制 `.env.example` 为 `.env`，设置 `WEB_PASSWORD`。规则模式无需 AI API Key。
+2. 查看电脑局域网 IPv4，例如 `192.168.1.20`。在 `.env` 中加入 `RADAR_BIND_ADDRESS=192.168.1.20`，以便手机访问；默认仅绑定 `127.0.0.1`。
+3. 执行 `docker compose up --build -d`（镜像已经构建时 `docker compose up -d`）。只在可信家庭局域网使用，防火墙仅放行该可信网段到 8000。不要在路由器上做公网端口转发。
+4. 手机与电脑连同一个网络，先用手机浏览器检查 `http://192.168.1.20:8000/health`。
+5. App 首次启动填写 `http://192.168.1.20:8000`，点 **CONNECT**，再使用现有 Web 用户名/密码登录。手机上的 `localhost` 指手机本身，不能填电脑服务的 localhost。Settings 状态区可随时修改 Backend URL。
+
+Android debug 构建允许 LAN HTTP 和混合内容（包括 `ws://`）；release 构建保留默认 cleartext 限制。正式公网地址推荐 `https://radar.example.com`，并在反向代理层配置可靠鉴权与 HTTPS/WSS。目前上游登录校验没有保护全部 API，本版本没有引入新用户系统；请勿直接暴露后端到公网。
+
+### 客户端内容
+
+复用 Dashboard / Tasks / Results / Settings，新增 Candidates 页：商品图片、标价、兴趣分、价格可信度、价格类型、型号、风险和评估理由；点击卡片查看内部详情，**OPEN IN XIANYU** 优先尝试 Android 闲鱼 App，无法启动时转系统浏览器。地址通过 Capacitor Preferences 与 Web 本地存储持久化，所有 REST/WS 使用统一地址工具。离线状态有 RETRY / SETTINGS；无后端时不会运行本地采集或自动下单。
+
+Candidates 来自已存在的 `radar_evaluations`，只读 API `/api/radar/candidates`（分页/候选过滤）和 `/api/radar/summary`；不修改原数据库表。图片/链接从对应原始商品记录关联，CLI 单独导入的评估可能没有图片。Items today 按 UTC 的评估日期统计，不代表闲鱼全站新增量。
+
+### 开发与构建
+
+需要 Node 22+、JDK 21、Android SDK 36 / build-tools 36.0.0。
+
+```bash
+cd web-ui
+npm ci
+npm run build
+npx cap sync android
+cd android
+# Linux / macOS
+./gradlew assembleDebug
+# Windows 使用 gradlew.bat assembleDebug
+```
+
+构建输出 `web-ui/android/app/build/outputs/apk/debug/app-debug.apk`。Android 工程已提交；构建资产、运行数据、登录态、签名密钥和 `local.properties` 不提交。
+
+GitHub Actions 的 **Android APK** 流程执行 Web build、360/390/450px 浏览测试、Capacitor sync、Gradle build、Android emulator 上的真实 WebView 启动/HTTP 连接/登录/候选读取/地址恢复测试，然后上传 APK 与预发布 Release。模拟后端仅使用合成商品，绝不联系闲鱼。真实闲鱼验证仍需用户自行完成官方登录与验证码。

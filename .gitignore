@@ -32,3 +32,17 @@ price_history/
 .coverage
 htmlcov/
 radar-data/
+
+# Android build outputs and local credentials
+web-ui/node_modules/
+web-ui/android/.gradle/
+web-ui/android/**/build/
+web-ui/android/local.properties
+web-ui/android/app/src/main/assets/public/
+web-ui/android/app/src/main/assets/capacitor.config.json
+web-ui/android/app/src/main/assets/capacitor.plugins.json
+*.jks
+*.keystore
+*.apk
+web-ui/test-results/
+web-ui/playwright-report/

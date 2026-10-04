@@ -4,6 +4,7 @@ WORKDIR /web-ui
 COPY web-ui/package*.json ./
 RUN npm ci
 COPY web-ui/ .
+COPY LICENSE UPSTREAM.md /
 RUN npm run build
 
 # Stage 2: Build the python environment with dependencies

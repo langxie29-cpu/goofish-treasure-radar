@@ -55,7 +55,7 @@ jobs:
           arch: x86_64
           profile: pixel_2
           disable-animations: true
-          script: cd web-ui/android && ./gradlew connectedDebugAndroidTest --no-daemon
+          script: cd web-ui/android && ./gradlew :app:connectedDebugAndroidTest --no-daemon
       - name: Android diagnostics
         if: failure()
         uses: actions/upload-artifact@v4

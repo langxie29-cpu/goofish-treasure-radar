@@ -1,3 +1,4 @@
+import { apiUrl } from '@/lib/backend'
 import { useAuth } from '@/composables/useAuth'
 
 interface FetchOptions extends RequestInit {
@@ -29,7 +30,7 @@ export async function http(url: string, options: FetchOptions = {}) {
     headers,
   }
 
-  const response = await fetch(fullUrl, config)
+  const response = await fetch(apiUrl(fullUrl), { ...config, signal: config.signal || AbortSignal.timeout(15000) })
 
   if (response.status === 401) {
     // Basic Auth failed or session expired

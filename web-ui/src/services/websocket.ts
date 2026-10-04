@@ -1,3 +1,4 @@
+import { backend, nativeClient, websocketUrl } from '@/lib/backend'
 type WebSocketEventHandler = (data: any) => void;
 
 class WebSocketService {
@@ -11,6 +12,7 @@ class WebSocketService {
     // 延迟连接，等待认证完成
     // 只有在已登录时才尝试连接
     if (localStorage.getItem('auth_logged_in') === 'true') {
+      this.shouldConnect = true;
       this.connect();
     }
   }
@@ -33,11 +35,8 @@ class WebSocketService {
   }
 
   private connect() {
-    // Determine the protocol (ws or wss) based on the current page protocol
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const host = window.location.host; // This includes port if present
-
-    const url = `${protocol}//${host}/ws`;
+    if (nativeClient && !backend.value) return;
+    const url = websocketUrl();
 
     console.log(`Connecting to WebSocket at ${url}`);
     this.ws = new WebSocket(url);
@@ -67,8 +66,8 @@ class WebSocketService {
         this.emit('disconnected', { isConnected: false });
       }
       // 只有在 shouldConnect 为 true 或已登录时才重连
-      if (this.shouldConnect || localStorage.getItem('auth_logged_in') === 'true') {
-        setTimeout(() => this.connect(), this.reconnectInterval);
+      if (this.shouldConnect) {
+        setTimeout(() => { if (this.shouldConnect) this.connect(); }, this.reconnectInterval);
       }
     };
 

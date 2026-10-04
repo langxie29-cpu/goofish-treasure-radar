@@ -1,10 +1,12 @@
+import { backend, nativeClient } from '@/lib/backend'
 import { watch } from 'vue'
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHashHistory } from 'vue-router'
 import MainLayout from '@/layouts/MainLayout.vue'
 import { useAuth } from '@/composables/useAuth'
 import { i18n, t } from '@/i18n'
 
 const routes = [
+  { path: '/backend', name: 'Backend', component: () => import('@/views/BackendView.vue') },
   {
     path: '/login',
     name: 'Login',
@@ -34,6 +36,7 @@ const routes = [
         component: () => import('@/views/AccountsView.vue'),
         meta: { titleKey: 'routes.accounts', requiresAuth: true },
       },
+      { path: 'candidates', name: 'Candidates', component: () => import('@/views/CandidatesView.vue'), meta: { requiresAuth: true } },
       {
         path: 'results',
         name: 'Results',
@@ -62,7 +65,7 @@ const routes = [
 ]
 
 const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHashHistory(),
   routes,
 })
 
@@ -78,7 +81,9 @@ function updateDocumentTitle() {
 router.beforeEach((to, _from, next) => {
   const { isAuthenticated } = useAuth()
 
-  if (to.meta.requiresAuth && !isAuthenticated.value) {
+  if (nativeClient && !backend.value && to.name !== 'Backend') {
+    next({ name: 'Backend' })
+  } else if (to.meta.requiresAuth && !isAuthenticated.value) {
     next({ name: 'Login', query: { redirect: to.fullPath } })
   } else if (to.name === 'Login' && isAuthenticated.value) {
     next({ name: 'Dashboard' })

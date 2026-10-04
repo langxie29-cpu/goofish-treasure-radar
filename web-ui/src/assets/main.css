@@ -128,3 +128,7 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Capacitor safe areas, and flex children on narrow phones. */
+body { padding-top: var(--safe-area-inset-top, env(safe-area-inset-top, 0px)); padding-bottom: var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)); }
+img { max-width: 100%; }

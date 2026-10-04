@@ -1,3 +1,4 @@
+import { apiUrl } from '@/lib/backend'
 import type { ResultInsights, ResultItem } from '@/types/result.d.ts'
 import { http } from '@/lib/http'
 
@@ -58,7 +59,7 @@ export function buildResultExportUrl(filename: string, params: GetResultContentP
 export function downloadResultExport(filename: string, params: GetResultContentParams = {}) {
   const url = buildResultExportUrl(filename, params)
   const link = document.createElement('a')
-  link.href = url
+  link.href = apiUrl(url)
   link.download = ''
   document.body.appendChild(link)
   link.click()

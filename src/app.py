@@ -8,6 +8,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from src.api.routes import (
+    radar,
     dashboard,
     tasks,
     logs,
@@ -101,6 +102,13 @@ app = FastAPI(
     version="2.0.0",
     lifespan=lifespan
 )
+
+# Only the bundled Capacitor origin is added; no wildcard CORS.
+from fastapi.middleware.cors import CORSMiddleware
+app.add_middleware(CORSMiddleware, allow_origins=["https://localhost", "capacitor://localhost"],
+                   allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+                   allow_headers=["Content-Type", "Authorization"])
+app.include_router(radar.router)
 
 # 注册路由
 app.include_router(tasks.router)

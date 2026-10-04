@@ -1,3 +1,4 @@
+import { apiUrl } from '@/lib/backend'
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { wsService } from '@/services/websocket'
@@ -41,7 +42,8 @@ export function useAuth() {
 
   async function login(user: string, pass: string): Promise<boolean> {
     try {
-      const response = await fetch('/auth/status', {
+      const response = await fetch(apiUrl('/auth/status'), {
+        signal: AbortSignal.timeout(10000),
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -46,3 +46,4 @@ web-ui/android/app/src/main/assets/capacitor.plugins.json
 *.apk
 web-ui/test-results/
 web-ui/playwright-report/
+web-ui/public/THIRD_PARTY_NOTICES.txt

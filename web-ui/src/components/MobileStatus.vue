@@ -5,12 +5,15 @@ const online = ref(false), checking = ref(false), today = ref(0), candidates = r
 let timer: ReturnType<typeof setInterval> | undefined
 async function refresh() {
   checking.value = true
-  try {
-    await checkBackend(); online.value = true
-    const response = await fetch(apiUrl('/api/radar/summary'), { signal: AbortSignal.timeout(6000) })
-    if (response.ok) { const data = await response.json(); today.value = data.items_today; candidates.value = data.candidates }
-  } catch { online.value = false }
+  try { await checkBackend(); online.value = true }
+  catch { online.value = false }
   finally { checking.value = false }
+  if (online.value) {
+    try {
+      const response = await fetch(apiUrl('/api/radar/summary'), { signal: AbortSignal.timeout(6000) })
+      if (response.ok) { const data = await response.json(); today.value = data.items_today; candidates.value = data.candidates }
+    } catch { /* Statistics failure must not misreport a healthy backend as offline. */ }
+  }
 }
 onMounted(() => { if (nativeClient || backend.value) { refresh(); timer = setInterval(refresh, 30000) } })
 onUnmounted(() => { if (timer) clearInterval(timer) })

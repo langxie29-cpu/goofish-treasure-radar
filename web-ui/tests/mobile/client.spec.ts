@@ -1,12 +1,13 @@
 import { test, expect } from '@playwright/test'
 const candidate = {item_id:'12345',title:'SHARP LJ64HB34 工业拆机 TFEL 屏',listed_price:180,rule_interest_score:92,price_confidence:90,price_type:'NEGOTIABLE_REAL_PRICE',detected_models:[{model:'LJ64HB34'}],risk_flags:['UNTESTED'],evaluation_reason:'罕见显示技术，值得点开核实，不代表值得购买。',image_urls:['https://example.com/image.jpg'],url:'https://www.goofish.com/item?id=12345',evaluated_at:'2026-10-04'}
 for (const width of [360, 390, 450]) {
- test(`candidate layout and details at ${width}px`, async ({page}) => {
+ test(`candidate layout and details at ${width}px`, async ({page, context}) => {
   await page.setViewportSize({width,height:800})
   await page.addInitScript(() => {localStorage.setItem('radar_backend','http://192.168.1.20:8000');localStorage.setItem('auth_logged_in','true')})
   await page.route('**/health', r=>r.fulfill({json:{status:'healthy'}}))
   await page.route('**/api/radar/summary', r=>r.fulfill({json:{items_today:5,candidates:1}}))
   await page.route('**/api/radar/candidates**', r=>r.fulfill({json:{total:1,items:[candidate]}}))
+  await context.route('https://www.goofish.com/**', r => r.fulfill({body:'Synthetic item link target'}))
   await page.goto('/#/candidates')
   await expect(page.getByText('● ONLINE')).toBeVisible()
   await expect(page.getByRole('heading',{name:candidate.title})).toBeVisible()
@@ -17,7 +18,8 @@ for (const width of [360, 390, 450]) {
   await page.getByRole('button',{name:'CLOSE',exact:true}).click()
   const popup=page.waitForEvent('popup')
   await page.getByRole('button',{name:'OPEN IN XIANYU',exact:true}).click()
-  expect((await popup).url()).toContain('goofish.com/item?id=12345')
+  const target = await popup
+  await target.waitForURL('https://www.goofish.com/item?id=12345')
  })
 }
 test('backend address persists, offline remains usable, validation rejects credentials',async({page})=>{

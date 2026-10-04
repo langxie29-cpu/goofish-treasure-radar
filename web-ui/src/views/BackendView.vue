@@ -9,7 +9,8 @@ async function connect() {
   try {
     await saveBackend(input.value)
     await checkBackend()
-    window.location.assign('/#/dashboard')
+    window.location.hash = '/dashboard'
+    window.location.reload()
   } catch (e) { error.value = e instanceof Error ? e.message : 'Cannot reach Radar backend' }
   finally { busy.value = false }
 }
